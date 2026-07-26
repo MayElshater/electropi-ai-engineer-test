@@ -1,35 +1,163 @@
-"""Tests for the provider-free LiveKit runtime skeleton."""
+"""Tests for the Deepgram-enabled LiveKit runtime skeleton."""
 
 import asyncio
 import importlib
 import sys
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 
 import pytest
 from livekit.agents import AgentServer, AgentSession, cli
+from livekit.plugins import deepgram
 
-from runtime import create_agent_session
+import config
+import runtime as runtime_module
+from config import Settings
 
 
-def import_app():
+def make_settings() -> Settings:
+    """Return complete deterministic settings for runtime tests."""
+    return Settings(
+        livekit_url="wss://example.livekit.cloud",
+        livekit_api_key="livekit-key",
+        livekit_api_secret="livekit-secret",
+        deepgram_api_key="deepgram-test-key",
+        google_api_key="google-key",
+        cartesia_api_key="cartesia-key",
+    )
+
+
+def import_app() -> ModuleType:
     """Import a fresh app module for isolated import behavior."""
     sys.modules.pop("app", None)
     return importlib.import_module("app")
 
 
+def test_create_stt_returns_deepgram_stt() -> None:
+    assert isinstance(runtime_module.create_stt(make_settings()), deepgram.STT)
+
+
+def test_create_stt_passes_model_language_and_api_key(monkeypatch) -> None:
+    settings = make_settings()
+    created = object()
+    received: dict[str, object] = {}
+
+    def fake_stt(**kwargs: object) -> object:
+        received.update(kwargs)
+        return created
+
+    monkeypatch.setattr(runtime_module.deepgram, "STT", fake_stt)
+
+    result = runtime_module.create_stt(settings)
+
+    assert result is created
+    assert received["model"] == "nova-3"
+    assert received["language"] == "multi"
+    assert received["api_key"] == settings.deepgram_api_key
+
+
 def test_create_agent_session_returns_agent_session() -> None:
     async def create() -> AgentSession:
-        return create_agent_session()
+        return runtime_module.create_agent_session(make_settings())
 
     assert isinstance(asyncio.run(create()), AgentSession)
 
 
-def test_create_agent_session_returns_fresh_instances() -> None:
-    async def create_pair() -> tuple[AgentSession, AgentSession]:
-        return create_agent_session(), create_agent_session()
+def test_create_agent_session_supplies_created_stt(monkeypatch) -> None:
+    settings = make_settings()
+    stt = object()
+    session = object()
+    received: dict[str, object] = {}
 
-    first, second = asyncio.run(create_pair())
-    assert first is not second
+    monkeypatch.setattr(runtime_module, "create_stt", lambda value: stt)
+
+    def fake_session(**kwargs: object) -> object:
+        received.update(kwargs)
+        return session
+
+    monkeypatch.setattr(runtime_module, "AgentSession", fake_session)
+
+    result = runtime_module.create_agent_session(settings)
+
+    assert result is session
+    assert received == {"stt": stt}
+
+
+def test_explicit_settings_avoid_get_settings(monkeypatch) -> None:
+    monkeypatch.setattr(
+        runtime_module,
+        "get_settings",
+        lambda: pytest.fail("get_settings should not be called"),
+    )
+    monkeypatch.setattr(runtime_module, "create_stt", lambda settings: object())
+    monkeypatch.setattr(runtime_module, "AgentSession", lambda **kwargs: object())
+
+    runtime_module.create_agent_session(make_settings())
+
+
+def test_zero_argument_session_loads_settings(monkeypatch) -> None:
+    settings = make_settings()
+    calls: list[str] = []
+    monkeypatch.setattr(
+        runtime_module,
+        "get_settings",
+        lambda: calls.append("settings") or settings,
+    )
+    monkeypatch.setattr(runtime_module, "create_stt", lambda value: object())
+    monkeypatch.setattr(runtime_module, "AgentSession", lambda **kwargs: object())
+
+    runtime_module.create_agent_session()
+
+    assert calls == ["settings"]
+
+
+def test_factories_return_fresh_instances() -> None:
+    settings = make_settings()
+    first_stt = runtime_module.create_stt(settings)
+    second_stt = runtime_module.create_stt(settings)
+
+    async def create_pair() -> tuple[AgentSession, AgentSession]:
+        return (
+            runtime_module.create_agent_session(settings),
+            runtime_module.create_agent_session(settings),
+        )
+
+    first_session, second_session = asyncio.run(create_pair())
+
+    assert first_stt is not second_stt
+    assert first_session is not second_session
+
+
+def test_import_runtime_has_no_factory_side_effects(monkeypatch) -> None:
+    calls: list[str] = []
+    sys.modules.pop("runtime", None)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(config, "get_settings", lambda: calls.append("settings"))
+        patch.setattr(deepgram, "STT", lambda **kwargs: calls.append("stt"))
+        importlib.import_module("runtime")
+
+    sys.modules["runtime"] = runtime_module
+    assert calls == []
+
+
+def test_api_key_is_not_exposed_by_settings_repr() -> None:
+    settings = make_settings()
+
+    assert settings.deepgram_api_key not in repr(settings)
+
+
+def test_api_key_is_not_added_to_factory_errors(monkeypatch) -> None:
+    settings = make_settings()
+
+    def fail_stt(**kwargs: object) -> object:
+        raise RuntimeError("STT construction failed")
+
+    monkeypatch.setattr(runtime_module.deepgram, "STT", fail_stt)
+
+    with pytest.raises(RuntimeError) as error:
+        runtime_module.create_stt(settings)
+
+    assert settings.deepgram_api_key not in str(error.value)
 
 
 def test_import_exposes_server_without_running_cli(monkeypatch) -> None:
@@ -88,7 +216,7 @@ def test_entrypoint_validates_settings_and_starts_agent(monkeypatch) -> None:
     monkeypatch.setattr(
         app,
         "create_agent_session",
-        lambda: events.append("session") or FakeSession(),
+        lambda value: events.append(("session", value)) or FakeSession(),
     )
     monkeypatch.setattr(
         app,
@@ -100,7 +228,7 @@ def test_entrypoint_validates_settings_and_starts_agent(monkeypatch) -> None:
 
     assert events == [
         ("settings", settings),
-        "session",
+        ("session", settings),
         "agent",
         ("start", room, agent),
         ("greeting", app.INITIAL_GREETING_INSTRUCTION),

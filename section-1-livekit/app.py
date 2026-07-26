@@ -20,8 +20,8 @@ server = AgentServer()
 @server.rtc_session()
 async def entrypoint(ctx: JobContext) -> None:
     """Validate configuration and start one structured intake session."""
-    _settings = get_settings()
-    session = create_agent_session()
+    settings = get_settings()
+    session = create_agent_session(settings)
     agent = StructuredIntakeAgent()
 
     await session.start(room=ctx.room, agent=agent)
