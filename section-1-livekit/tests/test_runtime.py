@@ -1,4 +1,4 @@
-"""Tests for the Deepgram-enabled LiveKit runtime skeleton."""
+"""Tests for the Deepgram and Gemini LiveKit runtime skeleton."""
 
 import asyncio
 import importlib
@@ -7,7 +7,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 from livekit.agents import AgentServer, AgentSession, cli
-from livekit.plugins import deepgram
+from livekit.plugins import deepgram, google
 
 import config
 import runtime as runtime_module
@@ -21,7 +21,7 @@ def make_settings() -> Settings:
         livekit_api_key="livekit-key",
         livekit_api_secret="livekit-secret",
         deepgram_api_key="deepgram-test-key",
-        google_api_key="google-key",
+        google_api_key="google-test-key",
         cartesia_api_key="cartesia-key",
     )
 
@@ -55,6 +55,28 @@ def test_create_stt_passes_model_language_and_api_key(monkeypatch) -> None:
     assert received["api_key"] == settings.deepgram_api_key
 
 
+def test_create_llm_returns_google_llm() -> None:
+    assert isinstance(runtime_module.create_llm(make_settings()), google.LLM)
+
+
+def test_create_llm_passes_model_and_api_key(monkeypatch) -> None:
+    settings = make_settings()
+    created = object()
+    received: dict[str, object] = {}
+
+    def fake_llm(**kwargs: object) -> object:
+        received.update(kwargs)
+        return created
+
+    monkeypatch.setattr(runtime_module.google, "LLM", fake_llm)
+
+    result = runtime_module.create_llm(settings)
+
+    assert result is created
+    assert received["model"] == "gemini-2.5-flash"
+    assert received["api_key"] == settings.google_api_key
+
+
 def test_create_agent_session_returns_agent_session() -> None:
     async def create() -> AgentSession:
         return runtime_module.create_agent_session(make_settings())
@@ -62,13 +84,24 @@ def test_create_agent_session_returns_agent_session() -> None:
     assert isinstance(asyncio.run(create()), AgentSession)
 
 
-def test_create_agent_session_supplies_created_stt(monkeypatch) -> None:
+def test_create_agent_session_supplies_stt_and_llm(monkeypatch) -> None:
     settings = make_settings()
     stt = object()
+    llm = object()
     session = object()
+    dependencies: list[tuple[str, Settings]] = []
     received: dict[str, object] = {}
 
-    monkeypatch.setattr(runtime_module, "create_stt", lambda value: stt)
+    monkeypatch.setattr(
+        runtime_module,
+        "create_stt",
+        lambda value: dependencies.append(("stt", value)) or stt,
+    )
+    monkeypatch.setattr(
+        runtime_module,
+        "create_llm",
+        lambda value: dependencies.append(("llm", value)) or llm,
+    )
 
     def fake_session(**kwargs: object) -> object:
         received.update(kwargs)
@@ -79,7 +112,8 @@ def test_create_agent_session_supplies_created_stt(monkeypatch) -> None:
     result = runtime_module.create_agent_session(settings)
 
     assert result is session
-    assert received == {"stt": stt}
+    assert dependencies == [("stt", settings), ("llm", settings)]
+    assert received == {"stt": stt, "llm": llm}
 
 
 def test_explicit_settings_avoid_get_settings(monkeypatch) -> None:
@@ -89,12 +123,13 @@ def test_explicit_settings_avoid_get_settings(monkeypatch) -> None:
         lambda: pytest.fail("get_settings should not be called"),
     )
     monkeypatch.setattr(runtime_module, "create_stt", lambda settings: object())
+    monkeypatch.setattr(runtime_module, "create_llm", lambda settings: object())
     monkeypatch.setattr(runtime_module, "AgentSession", lambda **kwargs: object())
 
     runtime_module.create_agent_session(make_settings())
 
 
-def test_zero_argument_session_loads_settings(monkeypatch) -> None:
+def test_zero_argument_session_loads_settings_once(monkeypatch) -> None:
     settings = make_settings()
     calls: list[str] = []
     monkeypatch.setattr(
@@ -103,6 +138,7 @@ def test_zero_argument_session_loads_settings(monkeypatch) -> None:
         lambda: calls.append("settings") or settings,
     )
     monkeypatch.setattr(runtime_module, "create_stt", lambda value: object())
+    monkeypatch.setattr(runtime_module, "create_llm", lambda value: object())
     monkeypatch.setattr(runtime_module, "AgentSession", lambda **kwargs: object())
 
     runtime_module.create_agent_session()
@@ -114,6 +150,8 @@ def test_factories_return_fresh_instances() -> None:
     settings = make_settings()
     first_stt = runtime_module.create_stt(settings)
     second_stt = runtime_module.create_stt(settings)
+    first_llm = runtime_module.create_llm(settings)
+    second_llm = runtime_module.create_llm(settings)
 
     async def create_pair() -> tuple[AgentSession, AgentSession]:
         return (
@@ -124,6 +162,7 @@ def test_factories_return_fresh_instances() -> None:
     first_session, second_session = asyncio.run(create_pair())
 
     assert first_stt is not second_stt
+    assert first_llm is not second_llm
     assert first_session is not second_session
 
 
@@ -134,19 +173,22 @@ def test_import_runtime_has_no_factory_side_effects(monkeypatch) -> None:
     with monkeypatch.context() as patch:
         patch.setattr(config, "get_settings", lambda: calls.append("settings"))
         patch.setattr(deepgram, "STT", lambda **kwargs: calls.append("stt"))
+        patch.setattr(google, "LLM", lambda **kwargs: calls.append("llm"))
         importlib.import_module("runtime")
 
     sys.modules["runtime"] = runtime_module
     assert calls == []
 
 
-def test_api_key_is_not_exposed_by_settings_repr() -> None:
+def test_provider_keys_are_not_exposed_by_settings_repr() -> None:
     settings = make_settings()
+    representation = repr(settings)
 
-    assert settings.deepgram_api_key not in repr(settings)
+    assert settings.deepgram_api_key not in representation
+    assert settings.google_api_key not in representation
 
 
-def test_api_key_is_not_added_to_factory_errors(monkeypatch) -> None:
+def test_deepgram_key_is_not_added_to_factory_errors(monkeypatch) -> None:
     settings = make_settings()
 
     def fail_stt(**kwargs: object) -> object:
@@ -158,6 +200,20 @@ def test_api_key_is_not_added_to_factory_errors(monkeypatch) -> None:
         runtime_module.create_stt(settings)
 
     assert settings.deepgram_api_key not in str(error.value)
+
+
+def test_google_key_is_not_added_to_factory_errors(monkeypatch) -> None:
+    settings = make_settings()
+
+    def fail_llm(**kwargs: object) -> object:
+        raise RuntimeError("LLM construction failed")
+
+    monkeypatch.setattr(runtime_module.google, "LLM", fail_llm)
+
+    with pytest.raises(RuntimeError) as error:
+        runtime_module.create_llm(settings)
+
+    assert settings.google_api_key not in str(error.value)
 
 
 def test_import_exposes_server_without_running_cli(monkeypatch) -> None:
