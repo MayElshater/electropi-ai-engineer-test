@@ -7,7 +7,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 from livekit.agents import AgentServer, AgentSession, cli
-from livekit.plugins import deepgram, google
+from livekit.plugins import cartesia, deepgram, google
 
 import config
 import runtime as runtime_module
@@ -77,6 +77,32 @@ def test_create_llm_passes_model_and_api_key(monkeypatch) -> None:
     assert received["api_key"] == settings.google_api_key
 
 
+def test_create_tts_returns_cartesia_tts() -> None:
+    assert isinstance(runtime_module.create_tts(make_settings()), cartesia.TTS)
+
+
+def test_create_tts_passes_model_language_and_api_key(monkeypatch) -> None:
+    settings = make_settings()
+    created = object()
+    received: dict[str, object] = {}
+
+    def fake_tts(**kwargs: object) -> object:
+        received.update(kwargs)
+        return created
+
+    monkeypatch.setattr(runtime_module.cartesia, "TTS", fake_tts)
+
+    result = runtime_module.create_tts(settings)
+
+    assert result is created
+    assert received == {
+        "model": "sonic-3",
+        "language": None,
+        "api_key": settings.cartesia_api_key,
+    }
+    assert "voice" not in received
+
+
 def test_create_agent_session_returns_agent_session() -> None:
     async def create() -> AgentSession:
         return runtime_module.create_agent_session(make_settings())
@@ -84,10 +110,11 @@ def test_create_agent_session_returns_agent_session() -> None:
     assert isinstance(asyncio.run(create()), AgentSession)
 
 
-def test_create_agent_session_supplies_stt_and_llm(monkeypatch) -> None:
+def test_create_agent_session_supplies_stt_llm_and_tts(monkeypatch) -> None:
     settings = make_settings()
     stt = object()
     llm = object()
+    tts = object()
     session = object()
     dependencies: list[tuple[str, Settings]] = []
     received: dict[str, object] = {}
@@ -102,6 +129,11 @@ def test_create_agent_session_supplies_stt_and_llm(monkeypatch) -> None:
         "create_llm",
         lambda value: dependencies.append(("llm", value)) or llm,
     )
+    monkeypatch.setattr(
+        runtime_module,
+        "create_tts",
+        lambda value: dependencies.append(("tts", value)) or tts,
+    )
 
     def fake_session(**kwargs: object) -> object:
         received.update(kwargs)
@@ -112,8 +144,12 @@ def test_create_agent_session_supplies_stt_and_llm(monkeypatch) -> None:
     result = runtime_module.create_agent_session(settings)
 
     assert result is session
-    assert dependencies == [("stt", settings), ("llm", settings)]
-    assert received == {"stt": stt, "llm": llm}
+    assert dependencies == [
+        ("stt", settings),
+        ("llm", settings),
+        ("tts", settings),
+    ]
+    assert received == {"stt": stt, "llm": llm, "tts": tts}
 
 
 def test_explicit_settings_avoid_get_settings(monkeypatch) -> None:
@@ -124,6 +160,7 @@ def test_explicit_settings_avoid_get_settings(monkeypatch) -> None:
     )
     monkeypatch.setattr(runtime_module, "create_stt", lambda settings: object())
     monkeypatch.setattr(runtime_module, "create_llm", lambda settings: object())
+    monkeypatch.setattr(runtime_module, "create_tts", lambda settings: object())
     monkeypatch.setattr(runtime_module, "AgentSession", lambda **kwargs: object())
 
     runtime_module.create_agent_session(make_settings())
@@ -139,6 +176,7 @@ def test_zero_argument_session_loads_settings_once(monkeypatch) -> None:
     )
     monkeypatch.setattr(runtime_module, "create_stt", lambda value: object())
     monkeypatch.setattr(runtime_module, "create_llm", lambda value: object())
+    monkeypatch.setattr(runtime_module, "create_tts", lambda value: object())
     monkeypatch.setattr(runtime_module, "AgentSession", lambda **kwargs: object())
 
     runtime_module.create_agent_session()
@@ -152,6 +190,8 @@ def test_factories_return_fresh_instances() -> None:
     second_stt = runtime_module.create_stt(settings)
     first_llm = runtime_module.create_llm(settings)
     second_llm = runtime_module.create_llm(settings)
+    first_tts = runtime_module.create_tts(settings)
+    second_tts = runtime_module.create_tts(settings)
 
     async def create_pair() -> tuple[AgentSession, AgentSession]:
         return (
@@ -163,6 +203,7 @@ def test_factories_return_fresh_instances() -> None:
 
     assert first_stt is not second_stt
     assert first_llm is not second_llm
+    assert first_tts is not second_tts
     assert first_session is not second_session
 
 
@@ -174,6 +215,7 @@ def test_import_runtime_has_no_factory_side_effects(monkeypatch) -> None:
         patch.setattr(config, "get_settings", lambda: calls.append("settings"))
         patch.setattr(deepgram, "STT", lambda **kwargs: calls.append("stt"))
         patch.setattr(google, "LLM", lambda **kwargs: calls.append("llm"))
+        patch.setattr(cartesia, "TTS", lambda **kwargs: calls.append("tts"))
         importlib.import_module("runtime")
 
     sys.modules["runtime"] = runtime_module
@@ -186,6 +228,7 @@ def test_provider_keys_are_not_exposed_by_settings_repr() -> None:
 
     assert settings.deepgram_api_key not in representation
     assert settings.google_api_key not in representation
+    assert settings.cartesia_api_key not in representation
 
 
 def test_deepgram_key_is_not_added_to_factory_errors(monkeypatch) -> None:
@@ -214,6 +257,20 @@ def test_google_key_is_not_added_to_factory_errors(monkeypatch) -> None:
         runtime_module.create_llm(settings)
 
     assert settings.google_api_key not in str(error.value)
+
+
+def test_cartesia_key_is_not_added_to_factory_errors(monkeypatch) -> None:
+    settings = make_settings()
+
+    def fail_tts(**kwargs: object) -> object:
+        raise RuntimeError("TTS construction failed")
+
+    monkeypatch.setattr(runtime_module.cartesia, "TTS", fail_tts)
+
+    with pytest.raises(RuntimeError) as error:
+        runtime_module.create_tts(settings)
+
+    assert settings.cartesia_api_key not in str(error.value)
 
 
 def test_import_exposes_server_without_running_cli(monkeypatch) -> None:
