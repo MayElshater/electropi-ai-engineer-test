@@ -18,7 +18,7 @@ def create_stt(settings: Settings) -> deepgram.STT:
 def create_llm(settings: Settings) -> google.LLM:
     """Return a Gemini Flash text language model."""
     return google.LLM(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash",
         api_key=settings.google_api_key,
     )
 

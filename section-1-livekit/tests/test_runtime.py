@@ -73,7 +73,7 @@ def test_create_llm_passes_model_and_api_key(monkeypatch) -> None:
     result = runtime_module.create_llm(settings)
 
     assert result is created
-    assert received["model"] == "gemini-2.5-flash"
+    assert received["model"] == "gemini-3.5-flash"
     assert received["api_key"] == settings.google_api_key
 
 
