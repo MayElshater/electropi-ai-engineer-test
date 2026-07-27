@@ -19,6 +19,11 @@ def create_llm(settings: Settings) -> google.LLM:
     """Return a Gemini Flash text language model."""
     return google.LLM(
         model="gemini-3.5-flash",
+         thinking_config={
+            "thinking_level": "minimal",
+        },
+        max_output_tokens=150,
+        temperature=0.2,
         api_key=settings.google_api_key,
     )
 
