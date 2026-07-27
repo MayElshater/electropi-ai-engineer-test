@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import math
 from pathlib import Path
 import os
 
@@ -22,7 +23,8 @@ class Settings:
     chunk_size: int
     chunk_overlap: int
     retrieval_k: int
-    min_relevance_score: float
+    retrieval_maximum_distance: float
+    
 
 
 def get_settings() -> Settings:
@@ -47,9 +49,10 @@ def get_settings() -> Settings:
         chunk_size=int(os.getenv("CHUNK_SIZE", "700")),
         chunk_overlap=int(os.getenv("CHUNK_OVERLAP", "120")),
         retrieval_k=int(os.getenv("RETRIEVAL_K", "4")),
-        min_relevance_score=float(
-            os.getenv("MIN_RELEVANCE_SCORE", "0.45")
+        retrieval_maximum_distance=float(
+            os.getenv("RETRIEVAL_MAXIMUM_DISTANCE", "1.0")
         ),
+       
     )
 
     if settings.chunk_overlap >= settings.chunk_size:
@@ -57,9 +60,14 @@ def get_settings() -> Settings:
             "CHUNK_OVERLAP must be smaller than CHUNK_SIZE."
         )
 
-    if not 0.0 <= settings.min_relevance_score <= 1.0:
+    
+
+    if (
+        not math.isfinite(settings.retrieval_maximum_distance)
+        or settings.retrieval_maximum_distance < 0
+    ):
         raise ValueError(
-            "MIN_RELEVANCE_SCORE must be between 0.0 and 1.0."
+            "RETRIEVAL_MAXIMUM_DISTANCE must be finite and at least 0."
         )
 
     settings.documents_dir.mkdir(parents=True, exist_ok=True)

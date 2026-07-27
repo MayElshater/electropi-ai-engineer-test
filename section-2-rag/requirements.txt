@@ -7,4 +7,5 @@ chromadb
 sentence-transformers
 pypdf
 python-dotenv
+pydantic
 pytest
