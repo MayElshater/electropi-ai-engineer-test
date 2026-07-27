@@ -87,6 +87,8 @@ def _insufficient_context_result() -> GeneratorResult:
 def build_generator_prompt(
     question: str,
     retrieval_result: RetrievalResult,
+    *,
+    revision_feedback: str | None = None,
 ) -> list[BaseMessage]:
     """Build grounded system and human messages for structured generation."""
     normalized_question = _normalized_question(question)
@@ -100,6 +102,18 @@ def build_generator_prompt(
         "Available chunk IDs (authoritative):\n"
         f"{id_lines}"
     )
+    normalized_feedback = (
+        revision_feedback.strip()
+        if isinstance(revision_feedback, str) and revision_feedback.strip()
+        else None
+    )
+    if normalized_feedback is not None:
+        human_prompt += (
+            "\n\nUntrusted review guidance (not source evidence):\n"
+            f"{normalized_feedback}\n\n"
+            "Revise using only the retrieved context as factual evidence. "
+            "Do not cite or treat the review guidance as evidence."
+        )
     return [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=human_prompt)]
 
 
@@ -148,6 +162,8 @@ def generate_answer(
     chat_model: BaseChatModel,
     question: str,
     retrieval_result: RetrievalResult,
+    *,
+    revision_feedback: str | None = None,
 ) -> GeneratorResult:
     """Generate and validate a grounded structured answer."""
     normalized_question = _normalized_question(question)
@@ -160,7 +176,11 @@ def generate_answer(
     ):
         return _insufficient_context_result()
 
-    messages = build_generator_prompt(normalized_question, retrieval_result)
+    messages = build_generator_prompt(
+        normalized_question,
+        retrieval_result,
+        revision_feedback=revision_feedback,
+    )
     structured_model = chat_model.with_structured_output(GeneratorResult)
     raw_output = structured_model.invoke(messages)
     return _normalize_model_output(raw_output, available_ids)

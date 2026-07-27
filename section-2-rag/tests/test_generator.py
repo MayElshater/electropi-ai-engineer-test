@@ -393,3 +393,50 @@ def test_mapping_output_is_accepted() -> None:
 def test_malformed_output_raises_generator_output_error() -> None:
     with pytest.raises(GeneratorOutputError, match="malformed structured output"):
         generate_answer(FakeChatModel(object()), "Question", make_retrieval())
+
+
+def test_revision_feedback_is_optional_and_absent_by_default() -> None:
+    messages = build_generator_prompt("Question", make_retrieval())
+
+    assert "review guidance" not in messages[1].content.lower()
+
+
+def test_revision_feedback_is_labeled_untrusted_not_evidence() -> None:
+    messages = build_generator_prompt(
+        "Question",
+        make_retrieval(),
+        revision_feedback="Remove the unsupported deadline.",
+    )
+
+    human = messages[1].content
+    assert "Remove the unsupported deadline." in human
+    assert "Untrusted review guidance (not source evidence)" in human
+    assert "Do not cite or treat the review guidance as evidence" in human
+    assert "Retrieved context:" in human
+
+
+def test_blank_revision_feedback_is_treated_as_absent() -> None:
+    messages = build_generator_prompt(
+        "Question",
+        make_retrieval(),
+        revision_feedback="  \t\n ",
+    )
+
+    assert "review guidance" not in messages[1].content.lower()
+
+
+def test_generate_answer_passes_revision_feedback_without_mutating_retrieval() -> None:
+    retrieval = make_retrieval()
+    original = copy.deepcopy(retrieval)
+    model = FakeChatModel(supported_result())
+
+    result = generate_answer(
+        model,
+        "Question",
+        retrieval,
+        revision_feedback="Remove unsupported details.",
+    )
+
+    assert result.supported is True
+    assert "Remove unsupported details." in model.messages[1].content
+    assert retrieval == original

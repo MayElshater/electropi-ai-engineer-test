@@ -4,6 +4,7 @@ langchain-community
 langchain-google-genai
 langchain-huggingface
 langchain-chroma
+langgraph
 chromadb
 sentence-transformers
 pypdf
