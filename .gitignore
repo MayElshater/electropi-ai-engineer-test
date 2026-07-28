@@ -1,11 +1,30 @@
+# Python
 .venv/
-.env
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editors
 .vscode/
 .idea/
+
+# macOS
+.DS_Store
+
+# Coverage
+.coverage
+htmlcov/
 
 # Chroma vector database
 **/data/chroma/
 **/chroma/
+
+# Generated conversation logs
+section-1-livekit/examples/sessions/
+
+# (Optional) Ignore local recordings if you don't want them in Git
