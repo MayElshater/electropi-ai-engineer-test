@@ -44,3 +44,22 @@ def test_system_prompt_forbids_inventing_missing_data() -> None:
 
     assert "never invent" in prompt
     assert "never invent, assume" in prompt
+
+def test_prompt_protects_arabic_and_english_personal_names() -> None:
+    prompt = SYSTEM_PROMPT.lower()
+
+    assert "personal names" in prompt
+    assert "never translate" in prompt
+    assert "never translate, transliterate" in prompt
+    assert "explicitly confirm that name" in prompt
+    assert "below 0.75" in prompt
+    assert "repeat or spell" in prompt
+    assert "fully replaces the previous name" in prompt
+
+
+def test_prompt_switches_from_english_to_arabic() -> None:
+    prompt = SYSTEM_PROMPT.lower()
+
+    assert "english to arabic" in prompt
+    assert "switch immediately" in prompt
+    assert "language the user is currently using" in prompt
