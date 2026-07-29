@@ -16,8 +16,8 @@ be selected through environment variables.
 
 | Demo | Link |
 |------|------|
-| Before Containerization | ▶️ [Watch Video](assets/LLM_Without_Containerization.mp4) |
-| After Containerization | ▶️ [Watch Video](assets/LLM_With_Containerization.mp4) |
+| Before Containerization | ▶️ [Watch Video](https://youtu.be/kCQycLl1ByM) |
+| After Containerization | ▶️ [Watch Video](https://youtu.be/7JGRwNpfYF4) |
 
 ## Features
 
