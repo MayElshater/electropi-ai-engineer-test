@@ -12,12 +12,12 @@ The included configuration targets the
 `qwen2.5-1.5b-instruct-q4_k_m.gguf` model, but another compatible GGUF model can
 be selected through environment variables.
 
-## Demo
-### Before Containerization
-<video controls src="https://github.com/MayElshater/electropi-ai-engineer-test/blob/main/section-4-deployment/assests/LLM_Without_Containerization.mp4"></video>
+## 🎥 Demo
 
-### After Containerization
-<video controls src="https://github.com/MayElshater/electropi-ai-engineer-test/blob/main/section-4-deployment/assests/LLM_With_Containerization.mp4" title="/home/mayrashad/projects/electropi-ai-engineer-test/section-4-deployment/assests/LLM_Without_Containerization.mp4"></video>
+| Demo | Link |
+|------|------|
+| Before Containerization | ▶️ [Watch Video](assets/LLM_Without_Containerization.mp4) |
+| After Containerization | ▶️ [Watch Video](assets/LLM_With_Containerization.mp4) |
 
 ## Features
 
