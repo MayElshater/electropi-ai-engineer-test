@@ -1,0 +1,188 @@
+{
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "hardware": {
+    "gpu": "Tesla T4",
+    "cuda_version": "12.8",
+    "pytorch_version": "2.11.0+cu128"
+  },
+  "configurations": {
+    "bf16": {
+      "model": "BF16",
+      "average_latency": 6.1505,
+      "average_tokens_per_second": 25.062,
+      "load_memory": {
+        "ram_gb": 1.599,
+        "allocated_gb": 2.884,
+        "reserved_gb": 2.934,
+        "peak_allocated_gb": 2.887,
+        "peak_reserved_gb": 2.934
+      },
+      "results": [
+        {
+          "id": "explanation",
+          "prompt": "Explain retrieval-augmented generation to a beginner in less than 120 words.",
+          "output": "Retrieval-Augmented Generation (RAG) is an advanced machine learning technique that combines the strengths of two different approaches: retrieval and generative models.\n\n1. **Retrieval**: This part involves using existing knowledge or data from a large repository, such as a database or a pre-trained model, to find relevant information quickly. Think of it like searching for a specific book in a library; you use keywords to narrow down your search.\n\n2. **Generation**: Once you've found the right piece of information, this part uses a generative model to create new content based on what was retrieved. It's like taking the information you found and turning it into something entirely new, like writing a story based on a set of facts about dinosaurs.\n\nIn RAG, these two processes work together seamlessly",
+          "generated_tokens": 160,
+          "latency_seconds": 5.5156,
+          "tokens_per_second": 29.008,
+          "memory": {
+            "ram_gb": 1.599,
+            "allocated_gb": 2.884,
+            "reserved_gb": 2.936,
+            "peak_allocated_gb": 2.895,
+            "peak_reserved_gb": 2.936
+          }
+        },
+        {
+          "id": "reasoning",
+          "prompt": "A support team receives 600 tickets daily. An AI resolves 65% automatically. 40% of the remaining tickets require escalation. How many tickets are escalated?",
+          "output": "To determine how many tickets are escalated, we need to follow these steps:\n\n1. Calculate the number of tickets that are resolved by the AI.\n2. Determine the number of tickets that remain after the AI has resolved some.\n3. Find out how many of the remaining tickets require escalation.\n\nFirst, let's calculate the number of tickets that are resolved by the AI:\n\\[ \\text{Tickets resolved by AI} = 600 \\times 0.65 = 390 \\]\n\nNext, we find out how many tickets remain after the AI has resolved some:\n\\[ \\text{Remaining tickets} = 600 - 390 = 210 \\]\n\nNow, we need to determine how many of these remaining tickets require escalation. Since 4",
+          "generated_tokens": 160,
+          "latency_seconds": 6.116,
+          "tokens_per_second": 26.161,
+          "memory": {
+            "ram_gb": 1.599,
+            "allocated_gb": 2.884,
+            "reserved_gb": 2.936,
+            "peak_allocated_gb": 2.895,
+            "peak_reserved_gb": 2.936
+          }
+        },
+        {
+          "id": "coding",
+          "prompt": "Write a Python function that removes duplicate dictionaries based on the key 'id' while preserving order.",
+          "output": "To remove duplicate dictionaries from a list based on the key `'id'` and preserve their original order, you can use the `OrderedDict` class from the `collections` module. This ensures that the order of elements is maintained as they were originally added to the dictionary.\n\nHere's how you could implement this:\n\n```python\nfrom collections import OrderedDict\n\ndef remove_duplicates_by_id(dicts):\n    \"\"\"\n    Removes duplicate dictionaries from a list based on the key 'id'.\n    \n    :param dicts: List of dictionaries.\n    :return: A new list with duplicates removed, preserving the original order.\n    \"\"\"\n    # Use OrderedDict to maintain insertion order\n    ordered_dicts = OrderedDict()\n    for d in dicts:\n        id_key = d.get('id')\n        if id_key not in ordered",
+          "generated_tokens": 160,
+          "latency_seconds": 5.4611,
+          "tokens_per_second": 29.298,
+          "memory": {
+            "ram_gb": 1.599,
+            "allocated_gb": 2.884,
+            "reserved_gb": 2.936,
+            "peak_allocated_gb": 2.895,
+            "peak_reserved_gb": 2.936
+          }
+        },
+        {
+          "id": "summarization",
+          "prompt": "Summarize the benefits and drawbacks of LLM quantization in three bullet points.",
+          "output": "Benefits:\n- Reduced memory usage and faster inference times\n- Lower power consumption for mobile or edge devices\n- Improved accuracy on lower precision data types\n\nDrawbacks:\n- Loss of some information during quantization process\n- Potential loss of model performance due to reduced precision\n- Increased complexity in training and deployment process",
+          "generated_tokens": 63,
+          "latency_seconds": 2.1935,
+          "tokens_per_second": 28.721,
+          "memory": {
+            "ram_gb": 1.599,
+            "allocated_gb": 2.884,
+            "reserved_gb": 2.936,
+            "peak_allocated_gb": 2.89,
+            "peak_reserved_gb": 2.936
+          }
+        },
+        {
+          "id": "instruction_following",
+          "prompt": "Give exactly three advantages of Docker for AI deployment.",
+          "output": "1. Portability: Docker containers allow you to package your AI application and its dependencies into a portable, self-contained unit that can be easily moved between different environments or cloud providers without the need for additional setup.\n\n2. Scalability: Docker allows you to scale your AI applications by simply scaling up or down the number of containers running in your environment. This makes it easy to handle sudden spikes in demand or unexpected traffic.\n\n3. Security: Docker provides built-in security features such as container isolation, network segmentation, and encryption, which help protect your AI applications from potential security threats. Additionally, Docker's containerization technology helps prevent conflicts between different versions of libraries and dependencies used in your application.",
+          "generated_tokens": 139,
+          "latency_seconds": 11.4665,
+          "tokens_per_second": 12.122,
+          "memory": {
+            "ram_gb": 1.6,
+            "allocated_gb": 2.884,
+            "reserved_gb": 2.936,
+            "peak_allocated_gb": 2.893,
+            "peak_reserved_gb": 2.936
+          }
+        }
+      ]
+    },
+    "4bit_nf4": {
+      "model": "4-bit NF4",
+      "average_latency": 9.2313,
+      "average_tokens_per_second": 16.319,
+      "load_memory": {
+        "ram_gb": 1.615,
+        "allocated_gb": 1.084,
+        "reserved_gb": 2.912,
+        "peak_allocated_gb": 1.113,
+        "peak_reserved_gb": 2.912
+      },
+      "results": [
+        {
+          "id": "explanation",
+          "prompt": "Explain retrieval-augmented generation to a beginner in less than 120 words.",
+          "output": "Retrieval-Augmented Generation (RAG) is an advanced machine learning technique that combines the strengths of two different approaches: Retrieval and Generative models.\n\n1. **Retrieval**: This part of RAG uses pre-trained models, like those from BERT or GPT, which have already learned vast amounts of text data. These models can quickly find relevant information by looking up specific keywords or phrases within large datasets.\n\n2. **Generative Model**: The generative model then takes this retrieved information as input and generates new, creative content based on it. It's like using your phone's camera to take a picture but then having a photographer add artistic elements to it.\n\nIn essence, RAG allows you to leverage existing knowledge (retrieved information) to generate novel, high-quality",
+          "generated_tokens": 160,
+          "latency_seconds": 15.0825,
+          "tokens_per_second": 10.608,
+          "memory": {
+            "ram_gb": 1.616,
+            "allocated_gb": 1.084,
+            "reserved_gb": 2.918,
+            "peak_allocated_gb": 1.114,
+            "peak_reserved_gb": 2.918
+          }
+        },
+        {
+          "id": "reasoning",
+          "prompt": "A support team receives 600 tickets daily. An AI resolves 65% automatically. 40% of the remaining tickets require escalation. How many tickets are escalated?",
+          "output": "To determine how many tickets are escalated, we need to follow these steps:\n\n1. Calculate the number of tickets that are resolved by the AI.\n2. Determine the number of tickets that remain after resolution.\n3. Calculate the number of tickets that require escalation from the remaining tickets.\n\nLet's go through each step in detail:\n\n1. **Calculate the number of tickets resolved by the AI:**\n   The AI resolves 65% of the tickets.\n   \\[\n   \\text{Number of tickets resolved} = 0.65 \\times 600 = 390\n   \\]\n\n2. **Determine the number of tickets that remain after resolution:**\n   Subtract the number of tickets resolved from the total number of tickets.\n   \\[\n   \\text{",
+          "generated_tokens": 160,
+          "latency_seconds": 11.5766,
+          "tokens_per_second": 13.821,
+          "memory": {
+            "ram_gb": 1.616,
+            "allocated_gb": 1.084,
+            "reserved_gb": 2.918,
+            "peak_allocated_gb": 1.115,
+            "peak_reserved_gb": 2.918
+          }
+        },
+        {
+          "id": "coding",
+          "prompt": "Write a Python function that removes duplicate dictionaries based on the key 'id' while preserving order.",
+          "output": "Certainly! Below is a Python function that removes duplicate dictionaries based on the key `id` and preserves their original order:\n\n```python\ndef remove_duplicates_by_id(dicts):\n    \"\"\"\n    Removes duplicate dictionaries based on the key 'id'.\n    \n    :param dicts: List of dictionaries to be processed.\n    :return: A list of unique dictionaries, maintaining the original order.\n    \"\"\"\n    seen = set()\n    unique_dicts = []\n    \n    for d in dicts:\n        # Convert dictionary to tuple (key, value) pair\n        item = tuple(sorted((d['id'], d)))\n        \n        if item not in seen:\n            seen.add(item)\n            unique_dicts.append(d)\n    \n    return unique_dicts\n\n# Example usage:\ndicts = [\n    {'id': 1,",
+          "generated_tokens": 160,
+          "latency_seconds": 7.8307,
+          "tokens_per_second": 20.432,
+          "memory": {
+            "ram_gb": 1.616,
+            "allocated_gb": 1.084,
+            "reserved_gb": 2.918,
+            "peak_allocated_gb": 1.114,
+            "peak_reserved_gb": 2.918
+          }
+        },
+        {
+          "id": "summarization",
+          "prompt": "Summarize the benefits and drawbacks of LLM quantization in three bullet points.",
+          "output": "Benefits:\n- Improved efficiency by reducing memory usage and lowering computational costs.\n- Enhanced performance on low-power devices or embedded systems.\n\nDrawbacks:\n- Potential loss of precision due to rounding during the quantization process.\n- Increased complexity in training and inference, as well as potential errors in the quantized model.",
+          "generated_tokens": 62,
+          "latency_seconds": 3.7556,
+          "tokens_per_second": 16.509,
+          "memory": {
+            "ram_gb": 1.616,
+            "allocated_gb": 1.084,
+            "reserved_gb": 2.914,
+            "peak_allocated_gb": 1.114,
+            "peak_reserved_gb": 2.914
+          }
+        },
+        {
+          "id": "instruction_following",
+          "prompt": "Give exactly three advantages of Docker for AI deployment.",
+          "output": "1. **Containerization**: Docker allows you to package your application along with its dependencies and runtime into a lightweight, portable container. This makes it easy to deploy the same application on different operating systems or even in different environments.\n\n2. **Isolation**: Containers provide an isolated environment that ensures each application runs without interfering with others. This is particularly useful when deploying multiple applications on the same machine, as it helps prevent conflicts between them.\n\n3. **Scalability**: Docker containers can be easily scaled up or down based on demand. This means that if your application's traffic increases, you can simply spin up more containers to handle the load, and if it decreases, you can shut down some of the containers to save resources. This makes it easier to manage and scale your application over time.",
+          "generated_tokens": 160,
+          "latency_seconds": 7.911,
+          "tokens_per_second": 20.225,
+          "memory": {
+            "ram_gb": 1.616,
+            "allocated_gb": 1.084,
+            "reserved_gb": 2.918,
+            "peak_allocated_gb": 1.113,
+            "peak_reserved_gb": 2.918
+          }
+        }
+      ]
+    }
+  }
+}
