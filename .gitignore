@@ -12,9 +12,14 @@ __pycache__/
 # Editors
 .vscode/
 .idea/
+.cursor/
 
 # macOS
 .DS_Store
+
+# Linux / Vim
+*.swp
+*~
 
 # Coverage
 .coverage
@@ -27,4 +32,12 @@ htmlcov/
 # Generated conversation logs
 section-1-livekit/examples/sessions/
 
-# (Optional) Ignore local recordings if you don't want them in Git
+# Local LLM models
+section-4-deployment/models/
+*.gguf
+
+# Demo videos
+*.mp4
+
+# Docker overrides
+docker-compose.override.yml

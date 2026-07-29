@@ -25,8 +25,8 @@ The submission is organized into four independent sections, each focusing on a d
 |----------|-------------|--------|
 | Section 1 | LiveKit Structured Voice Intake Assistant | ✅ |
 | Section 2 | Grounded RAG Pipeline with LangGraph Verification | ✅ |
-| Section 3 | LLM Quantization Benchmark | 🚧 |
-| Section 4 | Production Deployment & Load Testing | 🚧 |
+| Section 3 | LLM Quantization Benchmark | ✅ |
+| Section 4 | Production Deployment & Load Testing | ✅ |
 
 Each section is self-contained and includes:
 
@@ -37,6 +37,35 @@ Each section is self-contained and includes:
 - Known limitations
 - Half-page technical write-up
 - Tests (where applicable)
+
+---
+
+### Section Highlights
+
+**Section 1 — Real-Time Voice AI**
+- LiveKit voice agent
+- Multi-provider STT/LLM/TTS fallback
+- Structured information extraction
+- Production-ready testing
+
+**Section 2 — Grounded RAG**
+- LangGraph workflow
+- Chroma vector database
+- Grounded answer verification
+- End-to-end automated tests
+
+**Section 3 — LLM Quantization**
+- Qwen2.5-1.5B-Instruct benchmarking
+- BF16 vs 4-bit NF4 (BitsAndBytes)
+- VRAM, throughput, latency, and quality comparison
+- Production deployment trade-off analysis
+
+**Section 4 — Model Deployment**
+- GGUF model served through FastAPI
+- llama-cpp-python local inference
+- Dockerized deployment
+- Streaming endpoint
+- Concurrent load testing
 
 ---
 
@@ -125,6 +154,9 @@ section-4-deployment/README.md
 
 Demo videos are hosted externally to keep the repository lightweight.
 
+### Section 4 — Model Deployment
+- 🎥 Local GGUF API (Before Docker)
+- 🎥 Dockerized Deployment
 ---
 
 ## Technologies
@@ -134,6 +166,10 @@ Demo videos are hosted externally to keep the repository lightweight.
 - LangGraph
 - FastAPI
 - Docker
+- llama-cpp-python
+- Hugging Face Transformers
+- BitsAndBytes
+- GGUF
 - Google Gemini
 - Groq
 - Deepgram
@@ -141,7 +177,6 @@ Demo videos are hosted externally to keep the repository lightweight.
 - Cartesia
 - ElevenLabs
 - ChromaDB
-- Hugging Face Embeddings
 - Pytest
 
 ---
@@ -150,8 +185,9 @@ Demo videos are hosted externally to keep the repository lightweight.
 
 - API credentials are supplied through `.env` files.
 - External AI services require valid provider accounts.
-- Docker is required for the deployment section.
-- Quantization benchmarks require a CUDA-capable GPU (Google Colab T4 was used).
+- Section 3 benchmarks were executed on Google Colab using an NVIDIA Tesla T4 GPU.
+- Section 4 supports local GGUF inference and Docker deployment.
+- API credentials are supplied through `.env` files..
 
 ---
 
@@ -167,8 +203,19 @@ Demo videos are hosted externally to keep the repository lightweight.
 
 - ✅ Section 1 – LiveKit Voice Intake Assistant
 - ✅ Section 2 – LangGraph RAG Pipeline
-- ⏳ Section 3 – LLM Quantization Benchmark
-- ⏳ Section 4 – Production Deployment
+- ✅ Section 3 – LLM Quantization Benchmark
+- ✅ Section 4 – Production Deployment
+
+---
+
+## Key Results
+
+- Implemented a production-style LiveKit voice assistant with provider fallback.
+- Built a grounded LangGraph RAG pipeline with verification.
+- Benchmarked BF16 and 4-bit NF4 quantization on Qwen2.5-1.5B-Instruct.
+- Deployed a GGUF model behind a FastAPI REST API using llama-cpp-python.
+- Containerized the inference service with Docker.
+- Added automated tests across all sections.
 
 ---
 

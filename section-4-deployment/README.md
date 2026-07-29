@@ -13,11 +13,11 @@ The included configuration targets the
 be selected through environment variables.
 
 ## Demo
-- Before Containerization
-/home/mayrashad/projects/electropi-ai-engineer-test/section-4-deployment/assests/LLM_Without_Containerization.mp4
+### Before Containerization
+<video controls src="https://github.com/MayElshater/electropi-ai-engineer-test/blob/main/section-4-deployment/assests/LLM_Without_Containerization.mp4"></video>
 
-- After Containerization
-/home/mayrashad/projects/electropi-ai-engineer-test/section-4-deployment/assests/LLM_With_Containerization.mp4
+### After Containerization
+<video controls src="https://github.com/MayElshater/electropi-ai-engineer-test/blob/main/section-4-deployment/assests/LLM_With_Containerization.mp4" title="/home/mayrashad/projects/electropi-ai-engineer-test/section-4-deployment/assests/LLM_Without_Containerization.mp4"></video>
 
 ## Features
 
